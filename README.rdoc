@@ -1,0 +1,18 @@
+= AUTHOR:
+
+Dan Prince <dan.prince@rackspace.com>
+
+= DESCRIPTION:
+
+Chef Cookbook to setup Keystone.
+
+= REQUIREMENTS:
+
+Requires access to keystone packages.
+
+= ATTRIBUTES: 
+
+See attributes/default.rb.
+
+= USAGE:
+

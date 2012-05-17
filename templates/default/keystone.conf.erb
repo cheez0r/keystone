@@ -1,0 +1,114 @@
+[DEFAULT]
+# Show more verbose log output (sets INFO log level output)
+verbose = <%= node[:keystone][:verbose] %>
+
+# Show debugging output in logs (sets DEBUG log level output)
+debug = <%= node[:keystone][:debug] %>
+
+# Which backend store should Keystone use by default.
+# Default: 'sqlite'
+# Available choices are 'sqlite' [future will include LDAP, PAM, etc]
+default_store = <%= node[:keystone][:default_store] %>
+
+# Log to this file. Make sure you do not set the same log
+log_file = <%= node[:keystone][:log_file] %>
+
+# Logging configuration file
+log_config = <%= node[:keystone][:log_config] %>
+
+# List of backends to be configured
+backends = keystone.backends.sqlalchemy
+#For LDAP support, add: ,keystone.backends.ldap
+
+# Dictionary Maps every service to a header.Missing services would get header
+# X_(SERVICE_NAME) Key => Service Name, Value => Header Name
+service-header-mappings = {
+	'nova' : 'X-Server-Management-Url',
+	'swift' : 'X-Storage-Url',
+	'cdn' : 'X-CDN-Management-Url'}
+
+#List of extensions currently supported
+extensions= osksadm,oskscatalog
+
+# Address to bind the API server
+# TODO Properties defined within app not available via pipeline.
+service_host = <%= node[:keystone][:service_host] %>
+
+# Port the bind the API server to
+service_port = <%= node[:keystone][:service_port] %>
+
+# SSL for API server
+service_ssl = <%= node[:keystone][:service_ssl] %>
+
+# Address to bind the Admin API server
+admin_host = <%= node[:keystone][:admin_host] %>
+
+# Port the bind the Admin API server to
+admin_port = <%= node[:keystone][:admin_port] %>
+
+# SSL for API Admin server
+admin_ssl = <%= node[:keystone][:admin_ssl] %>
+
+# Keystone certificate file (modify as needed)
+# Only required if *_ssl is set to True
+certfile = <%= node[:keystone][:certfile] %>
+
+# Keystone private key file (modify as needed)
+# Only required if *_ssl is set to True
+keyfile = <%= node[:keystone][:keyfile] %>
+
+# Keystone trusted CA certificates  (modify as needed)
+# Only required if *_ssl is set to True
+ca_certs = <%= node[:keystone][:ca_certs] %>
+
+# Client certificate required
+# Only relevant if *_ssl is set to True
+cert_required = <%= node[:keystone][:cert_required] %>
+
+#Role that allows to perform admin operations.
+keystone-admin-role = <%= node[:keystone][:admin_role] %>
+
+#Role that allows to perform service admin operations.
+keystone-service-admin-role = <%= node[:keystone][:service_admin_role] %>
+
+#Tells whether password user need to be hashed in the backend
+hash-password = <%= node[:keystone][:hash_password] %>
+
+[keystone.backends.sqlalchemy]
+# SQLAlchemy connection string for the reference implementation registry
+# server. Any valid SQLAlchemy connection string is fine.
+# See: http://bit.ly/ideIpI
+sql_connection = <%= node[:keystone][:sql_connection] %>
+backend_entities = ['UserRoleAssociation', 'Endpoints', 'Role', 'Tenant',
+                    'User', 'Credentials', 'EndpointTemplates', 'Token',
+                    'Service']
+
+# Period in seconds after which SQLAlchemy should reestablish its connection
+# to the database.
+sql_idle_timeout = <%= node[:keystone][:sql_idle_timeout] %>
+
+[pipeline:admin]
+pipeline =
+    urlnormalizer
+    admin_api
+
+[pipeline:keystone-legacy-auth]
+pipeline =
+    urlnormalizer
+    legacy_auth
+    service_api
+
+[app:service_api]
+paste.app_factory = keystone.server:service_app_factory
+
+[app:admin_api]
+paste.app_factory = keystone.server:admin_app_factory
+
+[filter:urlnormalizer]
+paste.filter_factory = keystone.frontends.normalizer:filter_factory
+
+[filter:legacy_auth]
+paste.filter_factory = keystone.frontends.legacy_token_auth:filter_factory
+
+[filter:debug]
+paste.filter_factory = keystone.common.wsgi:debug_filter_factory
